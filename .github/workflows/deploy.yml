@@ -11,13 +11,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2  # Hacemos checkout de repositorio
+        uses: actions/checkout@v2  # Hacemos checkout del repositorio
 
       - name: Set up Google Cloud credentials
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v0.2.0  # Asegúrate de usar la versión correcta
         with:
           project_id: 'inbound-ranger-437423-v3'  # ID del proyecto de Google Cloud
-          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}  # Aquí accedemos al secret
+          credentials: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}  # Aquí accedemos al secret
 
       - name: Install dependencies
         run: |
@@ -26,5 +26,3 @@ jobs:
       - name: Deploy chatbot
         run: |
           python app.py  # O el comando que utiliza para desplegar el chatbot
-
-
