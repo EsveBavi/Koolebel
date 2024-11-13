@@ -1,0 +1,30 @@
+name: Deploy Chatbot to Google Cloud
+
+on:
+  push:
+    branches:
+      - main  # O la rama donde activa este flujo de trabajo
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # Usa una máquina virtual en Ubuntu
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2  # Hacemos checkout de repositorio
+
+      - name: Set up Google Cloud credentials
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          project_id: 'inbound-ranger-437423-v3'  # ID del proyecto de Google Cloud
+          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}  # Aquí accedemos al secret
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt  # instala las dependencias del proyecto
+
+      - name: Deploy chatbot
+        run: |
+          python app.py  # O el comando que utiliza para desplegar el chatbot
+
+
