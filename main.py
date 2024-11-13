@@ -12,7 +12,7 @@ def init_router(page: ft.Page):
     router = Router(page)
     router.add_route("/", main)
     return router
-
+#Funciones para el routing con las imagenes 
 def launch_user_process():
     try:
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -37,6 +37,31 @@ def launch_user_process():
             )
     except Exception as e:
         print(f"Error al abrir user.py: {e}")
+
+def launch_chat_process():
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        chat_path = os.path.join(current_dir, "chat.py")
+        
+        startupinfo = None
+        if sys.platform.startswith('win'):
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            subprocess.Popen(
+                [sys.executable, chat_path],
+                startupinfo=startupinfo,
+                creationflags=subprocess.CREATE_NEW_CONSOLE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+        else:
+            subprocess.Popen(
+                [sys.executable, chat_path],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+    except Exception as e:
+        print(f"Error al abrir chat.py: {e}")
 
 def main(page: ft.Page):
     page.title = "HOME VIEW"
@@ -275,46 +300,49 @@ def main(page: ft.Page):
         ),
         padding=20,
     )
-
+    #hago con un if else dependiendo de el index del navbar 
     def handle_navigation_change(e):
         index = e.control.selected_index
-        if index == 5:  # Índice del botón USER
-            # Ejecutar el proceso en un hilo separado
+        if index == 5:  # USER
             thread = threading.Thread(target=launch_user_process)
             thread.daemon = True
             thread.start()
-            # Destruir la ventana actual después de iniciar el proceso
             page.window_destroy()
-            
+        elif index == 1:  # CHAT
+            thread = threading.Thread(target=launch_chat_process)
+            thread.daemon = True
+            thread.start()
+            page.window_destroy()
+
     navigation_bar = ft.NavigationBar(
         bgcolor="#FFE1E1",
         destinations=[
-            ft.NavigationDestination(
+            ft.NavigationBarDestination(
                 icon=ft.icons.HOME_OUTLINED,
                 selected_icon=ft.icons.HOME_FILLED,
                 label="HOME",
             ),
-            ft.NavigationDestination(
+            ft.NavigationBarDestination(
                 icon=ft.icons.CHAT_BUBBLE_OUTLINE,
                 selected_icon=ft.icons.CHAT_BUBBLE,
                 label="CHAT",
             ),
-            ft.NavigationDestination(
+            ft.NavigationBarDestination(
                 icon=ft.icons.MAP_OUTLINED,
                 selected_icon=ft.icons.MAP,
                 label="MAPS",
             ),
-            ft.NavigationDestination(
+            ft.NavigationBarDestination(
                 icon=ft.icons.GROUPS_OUTLINED,
                 selected_icon=ft.icons.GROUPS,
                 label="FORUM",
             ),
-            ft.NavigationDestination(
+            ft.NavigationBarDestination(
                 icon=ft.icons.BOOK_OUTLINED,
                 selected_icon=ft.icons.BOOK,
                 label="NOTES",
             ),
-            ft.NavigationDestination(
+            ft.NavigationBarDestination(
                 icon=ft.icons.PERSON_OUTLINE,
                 selected_icon=ft.icons.PERSON,
                 label="USER",
@@ -325,6 +353,7 @@ def main(page: ft.Page):
         height=65,
         label_behavior=ft.NavigationBarLabelBehavior.ALWAYS_SHOW,
     )
+            
 
     main_column.controls = [
         header,
