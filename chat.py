@@ -5,6 +5,8 @@ import subprocess
 import sys
 import os
 import threading
+import dialogflow_v2 as dialogflow
+from google.api_core.exceptions import InvalidArgument
 
 router = None
 
@@ -51,6 +53,22 @@ class ChatBotApp:
         self.page.padding = 0
         self.messages: List[ChatMessage] = []
         self.setup_ui()
+        # Configuración de Dialogflow
+        self.session_client = dialogflow.SessionsClient()
+        self.project_id = "educaci-nsexualfemenina-xftd"  # Aquí deberías usar tu proyecto de Dialogflow
+        self.session_id = "123456"  # Podrías generar un ID único para cada sesión de usuario
+
+    def detect_intent_texts(self, text: str) -> str:
+        # Función para enviar el mensaje a Dialogflow y recibir la respuesta
+        session = self.session_client.session_path(self.project_id, self.session_id)
+        text_input = dialogflow.types.TextInput(text=text, language_code="es")  # Ajusta el idioma según necesites
+        query_input = dialogflow.types.QueryInput(text=text_input)
+
+        try:
+            response = self.session_client.detect_intent(session=session, query_input=query_input)
+            return response.query_result.fulfillment_text
+        except InvalidArgument:
+            raise Exception("Error en la conexión con Dialogflow")
 
     def setup_ui(self):
         # Configuración de imágenes de perfil
@@ -189,12 +207,6 @@ class ChatBotApp:
             )
         )
 
-        # Add initial messages
-        self.add_message("Lorem ipsum dolor sit amet, consectetur adipiscing elit..", True)
-        self.add_message("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum id ligula porta felis euismod semper.", False)
-        self.add_message("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed auctor neque eu tellus rhoncus ut eleifend nibh porttitor. Ut in nulla enim.", True)
-        self.add_message("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum id ligula porta felis euismod semper.", False)
-
     def create_message_bubble(self, message: ChatMessage) -> ft.Container:
         profile_picture = ft.Container(
             content=ft.CircleAvatar(
@@ -230,16 +242,20 @@ class ChatBotApp:
         self.chat_container.controls.append(self.create_message_bubble(message))
         self.page.update()
 
-    def simulate_bot_response(self, e):
-        self.add_message("Thank you for your question! I'm here to help.", True)
-
     def send_message(self, e):
         text = self.input_field.value
         if text:
-            self.add_message(text, False)
+            self.add_message(text, False)  # Agrega el mensaje del usuario
             self.input_field.value = ""
             self.page.update()
-            self.page.after(1000, self.simulate_bot_response)
+            self.page.after(1000, self.simulate_bot_response)  # Llama la respuesta del bot
+
+    def simulate_bot_response(self, e):
+        # Obtén la respuesta del bot utilizando Dialogflow
+        user_message = self.input_field.value
+        if user_message:
+            bot_response = self.detect_intent_texts(user_message)
+            self.add_message(bot_response, True)  # Agrega la respuesta del bot
 
     def go_back(self, e):
         thread = threading.Thread(target=launch_main_process)
